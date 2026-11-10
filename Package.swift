@@ -1,5 +1,4 @@
 // swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
@@ -9,12 +8,14 @@ let package = Package(
     products: [
         .library(name: "SrdzPermissions", targets: ["SrdzPermissions"]),
         .library(name: "SrdzPermissionsLocation", targets: ["SrdzPermissionsLocation"]),
+        .library(name: "SrdzPermissionsTesting", targets: ["SrdzPermissionsTesting"]),
     ],
     targets: [
         .target(name: "SrdzPermissionsCore"),
         .target(name: "SrdzPermissionsLocation", dependencies: ["SrdzPermissionsCore"]),
+        .target(name: "SrdzPermissionsTesting", dependencies: ["SrdzPermissionsLocation"]),
         .target(name: "SrdzPermissions", dependencies: ["SrdzPermissionsCore", "SrdzPermissionsLocation"]),
         .testTarget(name: "SrdzPermissionsCoreTests", dependencies: ["SrdzPermissionsCore"]),
-        .testTarget(name: "SrdzPermissionsLocationTests", dependencies: ["SrdzPermissionsLocation"]),
+        .testTarget(name: "SrdzPermissionsLocationTests", dependencies: ["SrdzPermissionsLocation", "SrdzPermissionsTesting"]),
     ]
 )

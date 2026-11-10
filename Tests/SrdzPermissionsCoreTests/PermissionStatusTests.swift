@@ -4,6 +4,7 @@ import Testing
 @Suite struct PermissionStatusTests {
     @Test(arguments: [
         (PermissionStatus.authorized, true),
+
         (.limited, true),
         (.notDetermined, false),
         (.denied, false),
