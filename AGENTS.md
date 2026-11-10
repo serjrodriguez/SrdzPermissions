@@ -46,7 +46,7 @@ Distribution targets: SPM (primary), local package, and XCFramework per module (
 - Commits: this repo's local git email is the GitHub noreply address (public repo; never switch it to a real email).
 - File headers use the form `Created by Sergio Rodriguez on dd/MM/yy` (set via the global Xcode template).
 - `.swiftpm/` and Xcode user state are git-ignored.
-- No README or LICENSE yet; both are planned once the location MVP works.
+- Keep `README.md` in sync with the public API and the roadmap; the XCFramework build script is still pending, so the README must not claim it exists.
 
 ## Location module specifics
 
