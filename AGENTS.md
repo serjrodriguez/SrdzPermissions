@@ -41,7 +41,9 @@ Design rules to preserve:
 - `Waiters` stores `CheckedContinuation`s and is **not thread-safe**: only use it as private state of an actor. Each continuation must be resumed exactly once (it clears before resuming; `cancel(id)` removes then resumes).
 - Public APIs should use `TimeInterval` rather than `Duration` for timeouts (iOS 15 minimum; `Duration` needs iOS 16).
 
-Distribution targets: SPM (primary), local package, and XCFramework per module (script planned in `Scripts/`, built with `BUILD_LIBRARY_FOR_DISTRIBUTION=YES`). CocoaPods is out of scope.
+Distribution targets: SPM (primary), local package, and one static XCFramework per module built by `Scripts/build-xcframework.sh` (`./Scripts/build-xcframework.sh [scheme...]`, output in `build/xcframeworks/`, git-ignored). CocoaPods is out of scope.
+
+XCFramework design notes: they are static frameworks, one per module, because Xcode does not add a library XCFramework's `Headers` to the Swift module search path and because a dynamic product would duplicate `SrdzPermissionsCore` inside every module that uses it. The script archives the umbrella scheme (plus `SrdzPermissionsTesting`) and splits the resulting objects and `.swiftinterface` files by module, so a new permission module is packaged automatically once the umbrella depends on it. Consumers must link the whole dependency chain (Location needs Core). It was verified by building executables against the XCFrameworks as SwiftPM `binaryTarget`s for device and simulator, not by dragging them into an Xcode project.
 
 ## Repo conventions
 

@@ -10,3 +10,4 @@ DerivedData/
 # Xcode / SwiftPM local state
 .swiftpm/
 *.xcuserstate
+/build/

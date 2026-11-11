@@ -50,7 +50,33 @@ Clone the repository, then drag its folder into your Xcode project, or choose **
 
 ### XCFramework
 
-Planned. A script that builds one XCFramework per module is on the roadmap.
+Build the XCFrameworks from the repository root (requires Xcode):
+
+```bash
+./Scripts/build-xcframework.sh
+```
+
+It writes one static XCFramework per module to `build/xcframeworks/`, with device and simulator slices, plus a `.zip` and a `.zip.checksum` for each.
+
+Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content** and set them to **Do Not Embed**, since they are static. Modules depend on each other, so add the whole chain:
+
+| To use | Add |
+|---|---|
+| Location only | `SrdzPermissionsCore` and `SrdzPermissionsLocation` |
+| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation` and `SrdzPermissions` |
+| Fakes for tests | `SrdzPermissionsTesting`, in test targets only |
+
+To use them without the source through Swift Package Manager, attach the zips to a GitHub release and declare binary targets with the release URL and the checksum from the `.checksum` files:
+
+```swift
+.binaryTarget(
+    name: "SrdzPermissionsCore",
+    url: "https://github.com/serjrodriguez/SrdzPermissions/releases/download/<version>/SrdzPermissionsCore.xcframework.zip",
+    checksum: "<contents of SrdzPermissionsCore.xcframework.zip.checksum>"
+)
+```
+
+No release has been published yet.
 
 ## Usage
 
@@ -183,7 +209,6 @@ LocationPermission        public facade, delegates only
 - Camera and microphone
 - Notifications
 - Photos, contacts, calendar
-- XCFramework build script
 - Upgrade from `.whenInUse` to `.always` with a prompt
 
 ## Contributing
