@@ -135,6 +135,10 @@ Start tracking from SwiftUI with `.task { await viewModel.track() }` so it cance
 
 `@Observable` needs iOS 17. On iOS 15 and 16, use `ObservableObject` with `@Published` properties instead; the library itself supports iOS 15.
 
+## Demo app
+
+`Examples/SrdzPermissionsDemo` is a SwiftUI app that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode and run it on a simulator or a device. It requests access, fetches the current location and streams updates, using the MVVM setup described above. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+
 ## Testing
 
 `SrdzPermissionsTesting` provides `FakeLocationProvider`:
