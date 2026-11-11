@@ -13,7 +13,7 @@ swift test                       # runs all Swift Testing suites
 swift test --filter WaitersTests # run one suite (or `--filter WaitersTests/cancelResumes...` for one test)
 ```
 
-The demo app lives in `Examples/SrdzPermissionsDemo` (hand-maintained `.xcodeproj` using a synchronized folder and a local package reference, so new Swift files in `SrdzPermissionsDemo/` are picked up automatically). Build it with `xcodebuild -project Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj -scheme SrdzPermissionsDemo -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`. It has its own bundle identifier and its Info.plist keys are build settings (`INFOPLIST_KEY_...`).
+The demo app lives in `Examples/SrdzPermissionsDemo`. It was created with Xcode 27 tooling (`XcodeNewProject`), so its project file is the new text format `project.xcproj` and needs Xcode 27 to open. It uses MVVM under `SrdzPermissionsDemo/Location/` (state, view model, view, assembly) and links the package by the local path `../..` (never a path that includes the repo folder name). Prefer the Xcode plugin tools (`XcodeWrite`, `UpdateTargetBuildSetting`, `AddInfoPlist`) over editing the project file by hand; there is no tool to add a package dependency, so that step is done in the Xcode UI. Build for the simulator with `xcodebuild -project Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj -scheme SrdzPermissionsDemo -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`.
 
 CoreLocation-backed code must additionally be checked against iOS: build the `SrdzPermissions-Package` scheme with destination "Any iOS Simulator Device" in Xcode (or `xcodebuild`). Tests use Swift Testing (`import Testing`, `@Test`, `#expect`), not XCTest.
 

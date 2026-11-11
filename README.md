@@ -137,7 +137,18 @@ Start tracking from SwiftUI with `.task { await viewModel.track() }` so it cance
 
 ## Demo app
 
-`Examples/SrdzPermissionsDemo` is a SwiftUI app that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode and run it on a simulator or a device. It requests access, fetches the current location and streams updates, using the MVVM setup described above. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It requests access, fetches the current location and streams updates. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+
+The app follows MVVM:
+
+| File | Role |
+|---|---|
+| `LocationViewState.swift` | Explicit state and display-ready view data |
+| `LocationViewModel.swift` | `@Observable` model that owns tasks and talks to `LocationPermission` |
+| `LocationView.swift` | Renders state and forwards user intents |
+| `LocationAssembly.swift` | Wires the live dependency |
+
+The package itself builds with any Xcode that supports Swift 6; only the demo project needs Xcode 27.
 
 ## Testing
 
