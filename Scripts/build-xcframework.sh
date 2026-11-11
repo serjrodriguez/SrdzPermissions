@@ -11,8 +11,8 @@ else
 fi
 
 SLICES=(
-    "iphoneos|generic/platform=iOS|Release-iphoneos"
-    "iphonesimulator|generic/platform=iOS Simulator|Release-iphonesimulator"
+    "iphoneos|generic/platform=iOS|Release-iphoneos|arm64 arm64e"
+    "iphonesimulator|generic/platform=iOS Simulator|Release-iphonesimulator|arm64 x86_64"
 )
 
 BUNDLE_ID_PREFIX="com.serjrodriguez"
@@ -52,7 +52,7 @@ EOF
 MODULES=()
 
 for slice in "${SLICES[@]}"; do
-    IFS='|' read -r sdk destination configuration <<<"$slice"
+    IFS='|' read -r sdk destination configuration archs <<<"$slice"
 
     for scheme in "${SCHEMES[@]}"; do
         name="$scheme-$sdk"
@@ -65,6 +65,8 @@ for slice in "${SLICES[@]}"; do
             -destination "$destination" \
             -archivePath "$archive" \
             -derivedDataPath "$derived" \
+            ARCHS="$archs" \
+            ONLY_ACTIVE_ARCH=NO \
             SKIP_INSTALL=NO \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
             CODE_SIGNING_ALLOWED=NO \
@@ -107,7 +109,7 @@ for module in "${MODULES[@]}"; do
     echo "==> packaging $module"
     create_args=()
     for slice in "${SLICES[@]}"; do
-        IFS='|' read -r sdk _ _ <<<"$slice"
+        IFS='|' read -r sdk _ _ _ <<<"$slice"
         create_args+=(-framework "$WORK_DIR/frameworks/$sdk/$module.framework")
     done
 

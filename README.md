@@ -56,7 +56,12 @@ Build the XCFrameworks from the repository root (requires Xcode):
 ./Scripts/build-xcframework.sh
 ```
 
-It writes one static XCFramework per module to `build/xcframeworks/`, with device and simulator slices, plus a `.zip` and a `.zip.checksum` for each.
+It writes one static XCFramework per module to `build/xcframeworks/`, plus a `.zip` and a `.zip.checksum` for each. Every one supports iOS 15.0 and later and carries these architectures:
+
+| Slice | Architectures |
+|---|---|
+| iOS devices | `arm64`, `arm64e` |
+| iOS Simulator | `arm64`, `x86_64` |
 
 Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content** and set them to **Do Not Embed**, since they are static. Modules depend on each other, so add the whole chain:
 
@@ -175,6 +180,8 @@ The app follows MVVM:
 | `LocationAssembly.swift` | Wires the live dependency |
 
 The package itself builds with any Xcode that supports Swift 6; only the demo project needs Xcode 27.
+
+`Examples/SrdzPermissionsXCFrameworkDemo` is the same app, MVVM included, but it integrates the library through the XCFrameworks instead of Swift Package Manager. Run `./Scripts/build-xcframework.sh` first: the project references `build/xcframeworks/`, which is not committed, so its frameworks show as missing until you build them.
 
 ## Testing
 
