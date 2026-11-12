@@ -19,6 +19,8 @@ struct SrdzPermissionsDemoApp: App {
                     microphone: CaptureAssembly.makeMicrophoneViewModel()
                 )
                 .tabItem { Label("Capture", systemImage: "camera") }
+                BluetoothView(viewModel: BluetoothAssembly.makeViewModel())
+                    .tabItem { Label("Bluetooth", systemImage: "antenna.radiowaves.left.and.right") }
             }
         }
     }
