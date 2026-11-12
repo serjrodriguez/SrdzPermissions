@@ -115,7 +115,7 @@ for module in "${MODULES[@]}"; do
 
     xcodebuild -create-xcframework "${create_args[@]}" -output "$OUTPUT_DIR/$module.xcframework"
 
-    (cd "$OUTPUT_DIR" && ditto -c -k --sequesterRsrc --keepParent "$module.xcframework" "$module.xcframework.zip")
+    (cd "$OUTPUT_DIR" && ditto -c -k --norsrc --noextattr --keepParent "$module.xcframework" "$module.xcframework.zip")
     checksum="$(swift package compute-checksum "$OUTPUT_DIR/$module.xcframework.zip")"
     echo "$checksum" > "$OUTPUT_DIR/$module.xcframework.zip.checksum"
     echo "    checksum: $checksum"
