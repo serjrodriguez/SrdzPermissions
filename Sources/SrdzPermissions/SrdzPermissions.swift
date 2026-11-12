@@ -9,6 +9,7 @@
 @_exported import SrdzPermissionsCamera
 @_exported import SrdzPermissionsCore
 @_exported import SrdzPermissionsLocation
+@_exported import SrdzPermissionsNotifications
 
 public enum Permissions {
     #if os(iOS)
@@ -16,5 +17,6 @@ public enum Permissions {
     public static var camera: CameraPermission { .live }
     public static var microphone: MicrophonePermission { .live }
     public static var bluetooth: BluetoothPermission { .live }
+    public static var notifications: NotificationPermission { .live }
     #endif
 }

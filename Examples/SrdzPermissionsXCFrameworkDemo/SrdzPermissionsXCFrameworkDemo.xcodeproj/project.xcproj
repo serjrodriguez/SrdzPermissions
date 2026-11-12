@@ -16,6 +16,7 @@
     { "path": "../../build/xcframeworks/SrdzPermissionsLocation.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     { "path": "../../build/xcframeworks/SrdzPermissionsCamera.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     { "path": "../../build/xcframeworks/SrdzPermissionsBluetooth.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
+    { "path": "../../build/xcframeworks/SrdzPermissionsNotifications.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     { "path": "../../build/xcframeworks/SrdzPermissions.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     {
       "kind": "group",

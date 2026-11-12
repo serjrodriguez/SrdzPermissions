@@ -2,7 +2,7 @@
 
 A Swift package for requesting iOS permissions with Swift Concurrency: `async/await`, `AsyncStream` and actors. One consistent API on top of frameworks that mix delegates, completion handlers and async methods.
 
-Location, camera, microphone and Bluetooth are available today. Notifications and more are planned.
+Location, camera, microphone, Bluetooth and notifications are available today. More are planned.
 
 ## Features
 
@@ -42,6 +42,7 @@ Then add the products you need to your target:
 | `SrdzPermissionsLocation` | Location only |
 | `SrdzPermissionsCamera` | Camera and microphone only |
 | `SrdzPermissionsBluetooth` | Bluetooth only |
+| `SrdzPermissionsNotifications` | Notifications only |
 | `SrdzPermissionsTesting` | Fakes for your tests. Add it to test targets only |
 
 A tagged release will replace `branch: "main"` with a version requirement.
@@ -72,8 +73,9 @@ Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content**
 | Location only | `SrdzPermissionsCore` and `SrdzPermissionsLocation` |
 | Camera and microphone only | `SrdzPermissionsCore` and `SrdzPermissionsCamera` |
 | Bluetooth only | `SrdzPermissionsCore` and `SrdzPermissionsBluetooth` |
-| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth` and `SrdzPermissions` |
-| Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation`, `SrdzPermissionsCamera` and `SrdzPermissionsBluetooth`) |
+| Notifications only | `SrdzPermissionsCore` and `SrdzPermissionsNotifications` |
+| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications` and `SrdzPermissions` |
+| Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth` and `SrdzPermissionsNotifications`) |
 
 To use them without the source through Swift Package Manager, attach the zips to a GitHub release and declare binary targets with the release URL and the checksum from the `.checksum` files:
 
@@ -98,6 +100,8 @@ Add the usage description keys your app needs to its Info.plist:
 | `NSCameraUsageDescription` | Camera access |
 | `NSMicrophoneUsageDescription` | Microphone access |
 | `NSBluetoothAlwaysUsageDescription` | Bluetooth access |
+
+Notifications need no usage description key.
 
 If a key is missing, `requestAuthorization` throws `PermissionError.missingUsageDescription` instead of failing silently.
 
@@ -168,6 +172,24 @@ iOS has no request call for Bluetooth: the prompt appears when a `CBCentralManag
 
 The library only handles the permission. Scanning and connecting are left to your own Core Bluetooth code.
 
+### Notifications
+
+```swift
+let status = try await Permissions.notifications.requestAuthorization()
+```
+
+With no arguments it asks for alerts, sounds and badges. To choose, pass `NotificationOptions`:
+
+```swift
+let status = try await Permissions.notifications.requestAuthorization(options: [.alert, .provisional])
+```
+
+The result is a plain `PermissionStatus`. `.provisional` delivers quietly without showing a prompt and is reported as `.limited`. As with the other permissions, a denial is a result and iOS shows the prompt only once; send the user to `AppSettings.open()` after that.
+
+When several callers request at once they share one prompt, and the options of the first call are the ones used.
+
+This module only covers the permission. Registering for remote notifications (`registerForRemoteNotifications`), handling the device token and scheduling notifications stay in your app.
+
 ## Using it from MVVM
 
 Inject `LocationPermission` instead of reading `Permissions.location` inside your view model:
@@ -208,7 +230,7 @@ Start tracking from SwiftUI with `.task { await viewModel.track() }` so it cance
 
 ## Demo app
 
-`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It has three tabs: Location requests access, fetches the current location and streams updates; Capture requests camera and microphone access and offers a shortcut to Settings after a denial; Bluetooth shows the permission and the radio state. The simulator has no Bluetooth hardware, so use a device to see the radio state. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It has five tabs: Location requests access, fetches the current location and streams updates; Capture requests camera and microphone access and offers a shortcut to Settings after a denial; Bluetooth shows the permission and the radio state; Notifications requests access and reports the result. The simulator has no Bluetooth hardware, so use a device to see the radio state. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
 
 The app follows MVVM:
 
@@ -225,7 +247,7 @@ The package itself builds with any Xcode that supports Swift 6; only the demo pr
 
 ## Testing
 
-`SrdzPermissionsTesting` provides `FakeLocationProvider`, and `FakeCapturePermissionProvider` for the camera and the microphone, and `FakeBluetoothProvider`:
+`SrdzPermissionsTesting` provides `FakeLocationProvider`, and `FakeCapturePermissionProvider` for the camera and the microphone, and `FakeBluetoothProvider` and `FakeNotificationProvider`:
 
 ```swift
 import SrdzPermissionsTesting
@@ -259,6 +281,12 @@ BluetoothPermission       public facade
     BluetoothService      actor that waits for the manager's first report
       BluetoothBackend    internal protocol
         CoreBluetoothBackend  CBCentralManager adapter (iOS)
+
+NotificationPermission    public facade
+  NotificationProviding   public protocol, the seam for fakes
+    NotificationService   actor that coalesces requests
+      NotificationBackend internal protocol
+        UserNotificationsBackend  UNUserNotificationCenter adapter (iOS)
 ```
 
 - `SrdzPermissionsCore` holds the shared types: `PermissionStatus`, `PermissionError` and `AppSettings`.
@@ -267,7 +295,6 @@ BluetoothPermission       public facade
 
 ## Roadmap
 
-- Notifications
 - Photos, contacts, calendar
 - Upgrade from `.whenInUse` to `.always` with a prompt
 
