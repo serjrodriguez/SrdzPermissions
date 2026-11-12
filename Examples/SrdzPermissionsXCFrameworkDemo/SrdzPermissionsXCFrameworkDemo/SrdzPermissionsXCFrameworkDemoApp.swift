@@ -11,7 +11,15 @@ import SwiftUI
 struct SrdzPermissionsXCFrameworkDemoApp: App {
     var body: some Scene {
         WindowGroup {
-            LocationView(viewModel: LocationAssembly.makeViewModel())
+            TabView {
+                LocationView(viewModel: LocationAssembly.makeViewModel())
+                    .tabItem { Label("Location", systemImage: "location") }
+                CapturePermissionsView(
+                    camera: CaptureAssembly.makeCameraViewModel(),
+                    microphone: CaptureAssembly.makeMicrophoneViewModel()
+                )
+                .tabItem { Label("Capture", systemImage: "camera") }
+            }
         }
     }
 }

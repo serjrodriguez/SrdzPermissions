@@ -14,6 +14,7 @@
     { "kind": "folder", "path": "SrdzPermissionsXCFrameworkDemo", "target-membership": [ "SrdzPermissionsXCFrameworkDemo" ] },
     { "path": "../../build/xcframeworks/SrdzPermissionsCore.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     { "path": "../../build/xcframeworks/SrdzPermissionsLocation.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
+    { "path": "../../build/xcframeworks/SrdzPermissionsCamera.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     { "path": "../../build/xcframeworks/SrdzPermissions.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] },
     {
       "kind": "group",
@@ -43,6 +44,8 @@
         "ENABLE_PREVIEWS": "YES",
         "ENABLE_USER_SELECTED_FILES": "readonly",
         "GENERATE_INFOPLIST_FILE": "YES",
+        "INFOPLIST_KEY_NSCameraUsageDescription": "The demo shows how SrdzPermissions requests access to your camera.",
+        "INFOPLIST_KEY_NSMicrophoneUsageDescription": "The demo shows how SrdzPermissions requests access to your microphone.",
         "INFOPLIST_KEY_NSLocationWhenInUseUsageDescription": "The demo shows how SrdzPermissions requests and uses your location.",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]": "YES",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]": "YES",

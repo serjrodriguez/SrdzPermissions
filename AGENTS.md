@@ -1,7 +1,7 @@
 # AGENTS.md
 ## What this is
 
-`SrdzPermissions`: a Swift package that wraps iOS permission APIs (location first; camera, notifications, etc. planned) behind `async/await`, `AsyncStream` and actors. Public repo used as a portfolio piece, so API docs (`///`) and clean history matter. Owner GitHub handle: `serjrodriguez`. Naming: package/module prefix is `Srdz`; public types have **no** prefix (`LocationPermission`, `PermissionStatus`).
+`SrdzPermissions`: a Swift package that wraps iOS permission APIs (location, camera and microphone so far; notifications, etc. planned) behind `async/await`, `AsyncStream` and actors. Public repo used as a portfolio piece, so API docs (`///`) and clean history matter. Owner GitHub handle: `serjrodriguez`. Naming: package/module prefix is `Srdz`; public types have **no** prefix (`LocationPermission`, `PermissionStatus`).
 
 The owner is learning while building: explain non-obvious decisions briefly and keep changes small and reviewable.
 
@@ -13,7 +13,7 @@ swift test                       # runs all Swift Testing suites
 swift test --filter WaitersTests # run one suite (or `--filter WaitersTests/cancelResumes...` for one test)
 ```
 
-The demo app lives in `Examples/SrdzPermissionsDemo`. It was created with Xcode 27 tooling (`XcodeNewProject`), so its project file is the new text format `project.xcproj` and needs Xcode 27 to open. It uses MVVM under `SrdzPermissionsDemo/Location/` (state, view model, view, assembly) and links the package by the local path `../..` (never a path that includes the repo folder name). Prefer the Xcode plugin tools (`XcodeWrite`, `UpdateTargetBuildSetting`, `AddInfoPlist`) over editing the project file by hand; there is no tool to add a package dependency, so that step is done in the Xcode UI. A second demo, `Examples/SrdzPermissionsXCFrameworkDemo`, has the same MVVM code but links the XCFrameworks from `build/xcframeworks/` (run the script first; nothing built is committed). In its `project.xcproj` a framework is a `files` entry such as `{ "path": "../../build/xcframeworks/SrdzPermissionsCore.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] }`, and the frameworks are static, so nothing is embedded. Keep both demos in sync when the Location UI changes.
+The demo app lives in `Examples/SrdzPermissionsDemo`. It was created with Xcode 27 tooling (`XcodeNewProject`), so its project file is the new text format `project.xcproj` and needs Xcode 27 to open. It uses MVVM under `SrdzPermissionsDemo/Location/` (state, view model, view, assembly) and links the package by the local path `../..` (never a path that includes the repo folder name). Prefer the Xcode plugin tools (`XcodeWrite`, `UpdateTargetBuildSetting`, `AddInfoPlist`) over editing the project file by hand; there is no tool to add a package dependency, so that step is done in the Xcode UI. A second demo, `Examples/SrdzPermissionsXCFrameworkDemo`, has the same MVVM code but links the XCFrameworks from `build/xcframeworks/` (run the script first; nothing built is committed). In its `project.xcproj` a framework is a `files` entry such as `{ "path": "../../build/xcframeworks/SrdzPermissionsCore.xcframework", "target-membership": [ "SrdzPermissionsXCFrameworkDemo/frameworks" ] }`, and the frameworks are static, so nothing is embedded. Both demos have two tabs, Location (`Location/`) and Capture (`Capture/`, camera and microphone sharing one view model type). Keep both demos in sync when either UI changes, and add the matching `INFOPLIST_KEY_NS…UsageDescription` settings and, in the XCFramework demo, the framework entries when a module is added.
 
 Build for the simulator with `xcodebuild -project Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj -scheme SrdzPermissionsDemo -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`.
 
@@ -23,11 +23,12 @@ CoreLocation-backed code must additionally be checked against iOS: build the `Sr
 
 Multi-target package (`Package.swift`, tools 6.0 → Swift 6 language mode, strict concurrency on):
 
-- `SrdzPermissionsCore` — shared, framework-free primitives: `PermissionStatus`, `PermissionError`, `InfoPlistValidator`, `Waiters`.
+- `SrdzPermissionsCore` — shared, framework-free primitives: `PermissionStatus`, `PermissionError`, `InfoPlistValidator`, `Waiters`, `AppSettings`.
 - `SrdzPermissionsLocation` — location permission: public value types (`Location`, `LocationStatus`, `LocationAccess`, `LocationUpdateOptions`) plus, in `Internal/`, the implementation. It `@_exported import`s Core so consumers of this product don't need a second import.
-- `SrdzPermissions` — umbrella product that depends on all permission modules and hosts the `Permissions` entry point (`Permissions.location`, iOS only).
-- `SrdzPermissionsTesting` — public test-support product (`FakeLocationProvider`) so consumers can fake the facade in their own tests. It is the only non-test code that exists for tests; keep every other test helper under `Tests/`.
-- One **library product per permission** on purpose: apps link only the Apple frameworks they use (avoids App Review / Info.plist issues and binary bloat). Future modules follow the same shape (`SrdzPermissionsCamera`, `...Notifications`).
+- `SrdzPermissions` — umbrella product that depends on all permission modules and hosts the `Permissions` entry point (`Permissions.location`, `.camera`, `.microphone`, iOS only).
+- `SrdzPermissionsCamera` — camera and microphone permission (`CameraPermission`, `MicrophonePermission`, both conforming to `CapturePermissionProviding`). Status is the shared `PermissionStatus`; there is no module-specific status type. `AVCaptureBackend` is `#if os(iOS)` and re-evaluates the status on `didBecomeActive`, because AVFoundation has no authorization callback. Core also holds `AppSettings.open()` (iOS only) to leave `.denied`.
+- `SrdzPermissionsTesting` — public test-support product (`FakeLocationProvider`, `FakeCapturePermissionProvider`) so consumers can fake the facade in their own tests. It is the only non-test code that exists for tests; keep every other test helper under `Tests/`.
+- One **library product per permission** on purpose: apps link only the Apple frameworks they use (avoids App Review / Info.plist issues and binary bloat). Future modules follow the same shape (`...Notifications`).
 
 Layers inside each permission module (implemented for Location — copy this shape for new permissions):
 

@@ -2,7 +2,7 @@
 
 A Swift package for requesting iOS permissions with Swift Concurrency: `async/await`, `AsyncStream` and actors. One consistent API on top of frameworks that mix delegates, completion handlers and async methods.
 
-Location is available today. Camera, notifications and more are planned.
+Location, camera and microphone are available today. Notifications and more are planned.
 
 ## Features
 
@@ -40,6 +40,7 @@ Then add the products you need to your target:
 |---|---|
 | `SrdzPermissions` | Every permission, plus the `Permissions` entry point |
 | `SrdzPermissionsLocation` | Location only |
+| `SrdzPermissionsCamera` | Camera and microphone only |
 | `SrdzPermissionsTesting` | Fakes for your tests. Add it to test targets only |
 
 A tagged release will replace `branch: "main"` with a version requirement.
@@ -68,8 +69,9 @@ Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content**
 | To use | Add |
 |---|---|
 | Location only | `SrdzPermissionsCore` and `SrdzPermissionsLocation` |
-| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation` and `SrdzPermissions` |
-| Fakes for tests | `SrdzPermissionsTesting`, in test targets only |
+| Camera and microphone only | `SrdzPermissionsCore` and `SrdzPermissionsCamera` |
+| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera` and `SrdzPermissions` |
+| Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation` and `SrdzPermissionsCamera`) |
 
 To use them without the source through Swift Package Manager, attach the zips to a GitHub release and declare binary targets with the release URL and the checksum from the `.checksum` files:
 
@@ -91,6 +93,8 @@ Add the usage description keys your app needs to its Info.plist:
 |---|---|
 | `NSLocationWhenInUseUsageDescription` | Any location access |
 | `NSLocationAlwaysAndWhenInUseUsageDescription` | Requesting `.always` |
+| `NSCameraUsageDescription` | Camera access |
+| `NSMicrophoneUsageDescription` | Microphone access |
 
 If a key is missing, `requestAuthorization` throws `PermissionError.missingUsageDescription` instead of failing silently.
 
@@ -130,6 +134,21 @@ for await status in Permissions.location.statusUpdates() {
 }
 ```
 
+### Camera and microphone
+
+```swift
+let camera = try await Permissions.camera.requestAuthorization()
+let microphone = try await Permissions.microphone.requestAuthorization()
+
+if camera == .denied {
+    await AppSettings.open()
+}
+```
+
+Both return a `PermissionStatus`; a denial is a result, not an error. Concurrent requests share one system prompt, and `statusUpdates()` emits the current status followed by every change, including the ones the user makes in Settings while the app is in the background.
+
+`AppSettings.open()` opens your app's page in the Settings app. It is the only way to recover from `.denied`, because iOS shows the system prompt once.
+
 ## Using it from MVVM
 
 Inject `LocationPermission` instead of reading `Permissions.location` inside your view model:
@@ -164,11 +183,13 @@ final class LocationViewModel {
 
 Start tracking from SwiftUI with `.task { await viewModel.track() }` so it cancels when the view disappears.
 
+`CameraPermission` and `MicrophonePermission` both conform to `CapturePermissionProviding`, so one view model can serve either of them.
+
 `@Observable` needs iOS 17. On iOS 15 and 16, use `ObservableObject` with `@Published` properties instead; the library itself supports iOS 15.
 
 ## Demo app
 
-`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It requests access, fetches the current location and streams updates. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It has two tabs: location, which requests access, fetches the current location and streams updates, and capture, which requests camera and microphone access and offers a shortcut to Settings after a denial. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
 
 The app follows MVVM:
 
@@ -185,7 +206,7 @@ The package itself builds with any Xcode that supports Swift 6; only the demo pr
 
 ## Testing
 
-`SrdzPermissionsTesting` provides `FakeLocationProvider`:
+`SrdzPermissionsTesting` provides `FakeLocationProvider`, and `FakeCapturePermissionProvider` for the camera and the microphone:
 
 ```swift
 import SrdzPermissionsTesting
@@ -195,6 +216,8 @@ let fake = FakeLocationProvider(
     locations: [Location(latitude: 19.4326, longitude: -99.1332)]
 )
 let viewModel = LocationViewModel(permission: LocationPermission(provider: fake))
+
+let camera = CameraPermission(provider: FakeCapturePermissionProvider(authorizationResult: .authorized))
 ```
 
 ## Architecture
@@ -205,15 +228,20 @@ LocationPermission        public facade, delegates only
     LocationService       actor that owns all mutable state
       LocationBackend     internal protocol
         CoreLocationBackend   CLLocationManager adapter (iOS)
+
+CameraPermission, MicrophonePermission    public facades
+  CapturePermissionProviding              public protocol, the seam for fakes
+    CapturePermissionService              actor that coalesces requests
+      CaptureBackend                      internal protocol
+        AVCaptureBackend                  AVCaptureDevice adapter (iOS)
 ```
 
-- `SrdzPermissionsCore` holds the shared types: `PermissionStatus` and `PermissionError`.
+- `SrdzPermissionsCore` holds the shared types: `PermissionStatus`, `PermissionError` and `AppSettings`.
 - Each permission lives in its own module, so apps link only what they use.
-- The service is tested against a fake backend, without Core Location.
+- Services are tested against fake backends, without Core Location or AVFoundation.
 
 ## Roadmap
 
-- Camera and microphone
 - Notifications
 - Photos, contacts, calendar
 - Upgrade from `.whenInUse` to `.always` with a prompt
