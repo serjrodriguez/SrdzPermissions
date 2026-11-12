@@ -81,15 +81,31 @@ Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content**
 | Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications`, `SrdzPermissionsTracking`, `SrdzPermissionsPhotos`, `SrdzPermissionsBiometrics` and `SrdzPermissions` |
 | Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications`, `SrdzPermissionsTracking`, `SrdzPermissionsPhotos` and `SrdzPermissionsBiometrics`) |
 
-To use them without the source through Swift Package Manager, attach the zips to a GitHub release and declare binary targets with the release URL and the checksum from the `.checksum` files:
+Every permission is its own XCFramework on purpose: your app only links the Apple frameworks of the modules you add, so it never references Bluetooth, tracking or photos APIs it does not use.
+
+#### As a binary Swift package
+
+A release tag ships a `Package.swift` made of binary targets, so nothing is compiled from source. Add the package and pick one product; `SrdzPermissionsCore` and any other dependency come with it:
 
 ```swift
-.binaryTarget(
-    name: "SrdzPermissionsCore",
-    url: "https://github.com/serjrodriguez/SrdzPermissions/releases/download/<version>/SrdzPermissionsCore.xcframework.zip",
-    checksum: "<contents of SrdzPermissionsCore.xcframework.zip.checksum>"
-)
+.package(url: "https://github.com/serjrodriguez/SrdzPermissions.git", from: "<version>")
 ```
+
+```swift
+.product(name: "SrdzPermissionsLocation", package: "SrdzPermissions")
+```
+
+#### Manual installation
+
+Download `SrdzPermissions-all.zip` from the release. It holds every XCFramework and an `INSTALL.md` with the table above, so you only drag the ones you need. The individual `.xcframework.zip` files are attached too.
+
+#### Building a release
+
+```bash
+./Scripts/package-release.sh <version>
+```
+
+It builds the XCFrameworks and writes to `build/release/` the per-module zips, `checksums.txt`, `SrdzPermissions-all.zip`, a binary `Package.swift` for the tag and a `local-package/` to check that manifest before publishing.
 
 No release has been published yet.
 
