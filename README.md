@@ -2,7 +2,7 @@
 
 A Swift package for requesting iOS permissions with Swift Concurrency: `async/await`, `AsyncStream` and actors. One consistent API on top of frameworks that mix delegates, completion handlers and async methods.
 
-Location, camera, microphone, Bluetooth and notifications are available today. More are planned.
+Location, camera, microphone, Bluetooth, notifications, App Tracking Transparency, photos and biometrics (Face ID and Touch ID) are available today. Contacts, calendar and more are planned.
 
 ## Features
 
@@ -43,6 +43,9 @@ Then add the products you need to your target:
 | `SrdzPermissionsCamera` | Camera and microphone only |
 | `SrdzPermissionsBluetooth` | Bluetooth only |
 | `SrdzPermissionsNotifications` | Notifications only |
+| `SrdzPermissionsTracking` | App Tracking Transparency only |
+| `SrdzPermissionsPhotos` | Photos only |
+| `SrdzPermissionsBiometrics` | Face ID and Touch ID only |
 | `SrdzPermissionsTesting` | Fakes for your tests. Add it to test targets only |
 
 A tagged release will replace `branch: "main"` with a version requirement.
@@ -74,8 +77,9 @@ Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content**
 | Camera and microphone only | `SrdzPermissionsCore` and `SrdzPermissionsCamera` |
 | Bluetooth only | `SrdzPermissionsCore` and `SrdzPermissionsBluetooth` |
 | Notifications only | `SrdzPermissionsCore` and `SrdzPermissionsNotifications` |
-| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications` and `SrdzPermissions` |
-| Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth` and `SrdzPermissionsNotifications`) |
+| Tracking, Photos or Biometrics only | `SrdzPermissionsCore` and that module |
+| Everything, with the `Permissions` entry point | `SrdzPermissionsCore`, `SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications`, `SrdzPermissionsTracking`, `SrdzPermissionsPhotos`, `SrdzPermissionsBiometrics` and `SrdzPermissions` |
+| Fakes for tests | `SrdzPermissionsTesting`, in test targets only, with every module it fakes (`SrdzPermissionsLocation`, `SrdzPermissionsCamera`, `SrdzPermissionsBluetooth`, `SrdzPermissionsNotifications`, `SrdzPermissionsTracking`, `SrdzPermissionsPhotos` and `SrdzPermissionsBiometrics`) |
 
 To use them without the source through Swift Package Manager, attach the zips to a GitHub release and declare binary targets with the release URL and the checksum from the `.checksum` files:
 
@@ -100,6 +104,10 @@ Add the usage description keys your app needs to its Info.plist:
 | `NSCameraUsageDescription` | Camera access |
 | `NSMicrophoneUsageDescription` | Microphone access |
 | `NSBluetoothAlwaysUsageDescription` | Bluetooth access |
+| `NSUserTrackingUsageDescription` | App Tracking Transparency |
+| `NSPhotoLibraryUsageDescription` | Photos, read and write access |
+| `NSPhotoLibraryAddUsageDescription` | Photos, add-only access |
+| `NSFaceIDUsageDescription` | Face ID |
 
 Notifications need no usage description key.
 
@@ -186,9 +194,43 @@ let status = try await Permissions.notifications.requestAuthorization(options: [
 
 The result is a plain `PermissionStatus`. `.provisional` delivers quietly without showing a prompt and is reported as `.limited`. As with the other permissions, a denial is a result and iOS shows the prompt only once; send the user to `AppSettings.open()` after that.
 
-When several callers request at once they share one prompt, and the options of the first call are the ones used.
+When several callers request at once with the same options they share one prompt.
 
 This module only covers the permission. Registering for remote notifications (`registerForRemoteNotifications`), handling the device token and scheduling notifications stay in your app.
+
+### App Tracking Transparency
+
+```swift
+let status = try await Permissions.tracking.requestAuthorization()
+```
+
+iOS only shows the tracking prompt while the app is active. If you call this earlier, for example during launch, the library waits until the app becomes active instead of failing silently.
+
+### Photos
+
+```swift
+let status = try await Permissions.photos.requestAuthorization()
+
+if status == .limited {
+    try await Permissions.photos.presentLimitedLibraryPicker()
+}
+```
+
+`requestAuthorization(for:)` takes a `PhotosAccess`: `.readWrite` (the default) or `.addOnly`, which only needs permission to save. Each level has its own status. `.limited` means the user shared a selection of photos; `presentLimitedLibraryPicker()` lets them change it and throws if access is not limited. The picker uses PhotosUI.
+
+### Face ID and Touch ID
+
+```swift
+let status = await Permissions.biometrics.status
+
+if status.isAvailable {
+    let result = try await Permissions.biometrics.authenticate(reason: "Unlock your notes")
+}
+```
+
+Face ID is different from the other permissions: iOS offers no way to ask for it or to read its status. The system prompt appears the first time you authenticate. For that reason this module reports availability instead of a `PermissionStatus`: the `type` (`faceID`, `touchID`, `opticID`) and whether it is `available`, `notEnrolled`, `lockedOut`, `passcodeNotSet` or `notAvailable`. If the user denied Face ID for your app, iOS reports `notAvailable`, the same as a device without biometrics.
+
+`authenticate(reason:)` returns a `BiometricResult` (`success`, `cancelled`, `fallbackRequested` or `failed`) and throws `PermissionError.unavailable` when biometrics cannot be used. It throws `missingUsageDescription` if `NSFaceIDUsageDescription` is missing on a Face ID device, which would otherwise fail silently.
 
 ## Using it from MVVM
 
@@ -224,13 +266,13 @@ final class LocationViewModel {
 
 Start tracking from SwiftUI with `.task { await viewModel.track() }` so it cancels when the view disappears.
 
-`CameraPermission` and `MicrophonePermission` both conform to `CapturePermissionProviding`, so one view model can serve either of them.
+`CameraPermission`, `MicrophonePermission` and `TrackingPermission` all conform to `PermissionProviding`, so one view model can serve any of them.
 
 `@Observable` needs iOS 17. On iOS 15 and 16, use `ObservableObject` with `@Published` properties instead; the library itself supports iOS 15.
 
 ## Demo app
 
-`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It has five tabs: Location requests access, fetches the current location and streams updates; Capture requests camera and microphone access and offers a shortcut to Settings after a denial; Bluetooth shows the permission and the radio state; Notifications requests access and reports the result. The simulator has no Bluetooth hardware, so use a device to see the radio state. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
+`Examples/SrdzPermissionsDemo` is a SwiftUI app created with Xcode 27 that uses the package through a local reference. Open `Examples/SrdzPermissionsDemo/SrdzPermissionsDemo.xcodeproj` in Xcode 27, choose your signing team if you run it on a device, and run it. It opens on a list with one row per permission, and each row pushes that permission's screen: location (requests access, fetches the current location and streams updates), camera and microphone, Bluetooth (permission and radio state), notifications, tracking, photos (with the limited selection picker) and Face ID and Touch ID. Screens offer a shortcut to Settings after a denial. The simulator has no Bluetooth hardware, so use a device to see the radio state. On the simulator, change the location with **Features > Location** or `xcrun simctl location booted set 19.4326,-99.1332`.
 
 The app follows MVVM:
 
@@ -247,7 +289,7 @@ The package itself builds with any Xcode that supports Swift 6; only the demo pr
 
 ## Testing
 
-`SrdzPermissionsTesting` provides `FakeLocationProvider`, and `FakeCapturePermissionProvider` for the camera and the microphone, and `FakeBluetoothProvider` and `FakeNotificationProvider`:
+`SrdzPermissionsTesting` provides `FakeLocationProvider`, `FakePermissionProvider` (camera, microphone and tracking), `FakeBluetoothProvider`, `FakeNotificationProvider`, `FakePhotosProvider` and `FakeBiometricsProvider`:
 
 ```swift
 import SrdzPermissionsTesting
@@ -258,7 +300,7 @@ let fake = FakeLocationProvider(
 )
 let viewModel = LocationViewModel(permission: LocationPermission(provider: fake))
 
-let camera = CameraPermission(provider: FakeCapturePermissionProvider(authorizationResult: .authorized))
+let camera = CameraPermission(provider: FakePermissionProvider(authorizationResult: .authorized))
 ```
 
 ## Architecture
@@ -271,8 +313,8 @@ LocationPermission        public facade, delegates only
         CoreLocationBackend   CLLocationManager adapter (iOS)
 
 CameraPermission, MicrophonePermission    public facades
-  CapturePermissionProviding              public protocol, the seam for fakes
-    CapturePermissionService              actor that coalesces requests
+  PermissionProviding                     public protocol (Core), the seam for fakes
+    CapturePermissionService              validates Info.plist, delegates to Core
       CaptureBackend                      internal protocol
         AVCaptureBackend                  AVCaptureDevice adapter (iOS)
 
@@ -284,18 +326,18 @@ BluetoothPermission       public facade
 
 NotificationPermission    public facade
   NotificationProviding   public protocol, the seam for fakes
-    NotificationService   actor that coalesces requests
+    NotificationService   delegates to the shared service in Core
       NotificationBackend internal protocol
         UserNotificationsBackend  UNUserNotificationCenter adapter (iOS)
 ```
 
-- `SrdzPermissionsCore` holds the shared types: `PermissionStatus`, `PermissionError` and `AppSettings`.
+- `SrdzPermissionsCore` holds the shared types: `PermissionStatus`, `PermissionError`, `PermissionProviding` and `AppSettings`, plus the internal `AuthorizationService`, an actor that coalesces concurrent requests, supports cancellation and publishes status changes. Camera, microphone, notifications, tracking and photos are thin layers over it.
 - Each permission lives in its own module, so apps link only what they use.
 - Services are tested against fake backends, without Core Location or AVFoundation.
 
 ## Roadmap
 
-- Photos, contacts, calendar
+- Contacts and calendar
 - Upgrade from `.whenInUse` to `.always` with a prompt
 
 ## Contributing

@@ -1,22 +1,21 @@
 //
-//  CapturePermissionViewModel.swift
-//  SrdzPermissionsDemo
+//  PhotosViewModel.swift
+//  SrdzPermissionsXCFrameworkDemo
 //
-//  Created by Sergio Rodriguez on 11/11/26.
+//  Created by Sergio Rodriguez on 12/11/26.
 //
 
 import Foundation
 import SrdzPermissions
 
 @MainActor @Observable
-final class CapturePermissionViewModel {
-    private(set) var state: CapturePermissionViewState
+final class PhotosViewModel {
+    private(set) var state = PhotosViewState()
 
-    private let permission: any CapturePermissionProviding
+    private let permission: PhotosPermission
     private var requestTask: Task<Void, Never>?
 
-    init(title: String, permission: any CapturePermissionProviding) {
-        self.state = CapturePermissionViewState(title: title)
+    init(permission: PhotosPermission) {
         self.permission = permission
     }
 
@@ -37,6 +36,17 @@ final class CapturePermissionViewModel {
             do {
                 state.apply(try await permission.requestAuthorization())
             } catch is CancellationError {
+            } catch {
+                state.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func didTapManageSelection() {
+        state.errorMessage = nil
+        Task {
+            do {
+                try await permission.presentLimitedLibraryPicker()
             } catch {
                 state.errorMessage = error.localizedDescription
             }

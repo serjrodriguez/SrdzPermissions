@@ -7,10 +7,10 @@
 
 import SrdzPermissionsCore
 
-public struct CameraPermission: CapturePermissionProviding {
-    private let provider: any CapturePermissionProviding
+public struct CameraPermission: PermissionProviding {
+    private let provider: any PermissionProviding
 
-    public init(provider: any CapturePermissionProviding) {
+    public init(provider: any PermissionProviding) {
         self.provider = provider
     }
 

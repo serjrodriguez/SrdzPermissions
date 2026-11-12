@@ -9,12 +9,12 @@ import SrdzPermissions
 
 enum CaptureAssembly {
     @MainActor
-    static func makeCameraViewModel() -> CapturePermissionViewModel {
-        CapturePermissionViewModel(title: "Camera", permission: Permissions.camera)
+    static func makeCameraViewModel() -> PermissionViewModel {
+        PermissionViewModel(title: "Camera", permission: Permissions.camera)
     }
 
     @MainActor
-    static func makeMicrophoneViewModel() -> CapturePermissionViewModel {
-        CapturePermissionViewModel(title: "Microphone", permission: Permissions.microphone)
+    static func makeMicrophoneViewModel() -> PermissionViewModel {
+        PermissionViewModel(title: "Microphone", permission: Permissions.microphone)
     }
 }

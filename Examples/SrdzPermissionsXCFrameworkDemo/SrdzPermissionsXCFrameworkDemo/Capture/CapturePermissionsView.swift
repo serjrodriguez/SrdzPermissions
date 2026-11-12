@@ -9,45 +9,19 @@ import SrdzPermissions
 import SwiftUI
 
 struct CapturePermissionsView: View {
-    @State private var camera: CapturePermissionViewModel
-    @State private var microphone: CapturePermissionViewModel
+    @State private var camera: PermissionViewModel
+    @State private var microphone: PermissionViewModel
 
-    init(camera: CapturePermissionViewModel, microphone: CapturePermissionViewModel) {
+    init(camera: PermissionViewModel, microphone: PermissionViewModel) {
         _camera = State(wrappedValue: camera)
         _microphone = State(wrappedValue: microphone)
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                CapturePermissionSection(viewModel: camera)
-                CapturePermissionSection(viewModel: microphone)
-            }
-            .navigationTitle("Camera & Microphone")
+        List {
+            PermissionSection(viewModel: camera)
+            PermissionSection(viewModel: microphone)
         }
-    }
-}
-
-private struct CapturePermissionSection: View {
-    let viewModel: CapturePermissionViewModel
-
-    var body: some View {
-        Section(viewModel.state.title) {
-            LabeledContent("Status", value: viewModel.state.status)
-            Button("Request access") {
-                viewModel.didTapRequestAccess()
-            }
-            if viewModel.state.canOpenSettings {
-                Button("Open Settings") {
-                    viewModel.didTapOpenSettings()
-                }
-            }
-            if let errorMessage = viewModel.state.errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-            }
-        }
-        .task { await viewModel.observeStatus() }
-        .onDisappear { viewModel.onDisappear() }
+        .navigationTitle("Camera & Microphone")
     }
 }

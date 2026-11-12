@@ -1,14 +1,13 @@
 //
-//  FakeCapturePermissionProvider.swift
+//  FakePermissionProvider.swift
 //  SrdzPermissions
 //
 //  Created by Sergio Rodriguez on 11/11/26.
 //
 
-import SrdzPermissionsCamera
 import SrdzPermissionsCore
 
-public actor FakeCapturePermissionProvider: CapturePermissionProviding {
+public actor FakePermissionProvider: PermissionProviding {
     public private(set) var status: PermissionStatus
     public private(set) var requestCount = 0
 

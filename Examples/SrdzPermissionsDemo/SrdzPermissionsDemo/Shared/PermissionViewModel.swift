@@ -1,6 +1,6 @@
 //
-//  CapturePermissionViewModel.swift
-//  SrdzPermissionsXCFrameworkDemo
+//  PermissionViewModel.swift
+//  SrdzPermissionsDemo
 //
 //  Created by Sergio Rodriguez on 11/11/26.
 //
@@ -9,14 +9,14 @@ import Foundation
 import SrdzPermissions
 
 @MainActor @Observable
-final class CapturePermissionViewModel {
-    private(set) var state: CapturePermissionViewState
+final class PermissionViewModel {
+    private(set) var state: PermissionViewState
 
-    private let permission: any CapturePermissionProviding
+    private let permission: any PermissionProviding
     private var requestTask: Task<Void, Never>?
 
-    init(title: String, permission: any CapturePermissionProviding) {
-        self.state = CapturePermissionViewState(title: title)
+    init(title: String, permission: any PermissionProviding) {
+        self.state = PermissionViewState(title: title)
         self.permission = permission
     }
 

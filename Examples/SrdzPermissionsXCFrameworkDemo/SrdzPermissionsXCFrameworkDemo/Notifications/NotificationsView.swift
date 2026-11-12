@@ -15,30 +15,28 @@ struct NotificationsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                Section("Permission") {
-                    LabeledContent("Status", value: viewModel.state.status)
-                    Button("Request access") {
-                        viewModel.didTapRequestAccess()
-                    }
-                    if viewModel.state.canOpenSettings {
-                        Button("Open Settings") {
-                            viewModel.didTapOpenSettings()
-                        }
-                    }
+        List {
+            Section("Permission") {
+                LabeledContent("Status", value: viewModel.state.status)
+                Button("Request access") {
+                    viewModel.didTapRequestAccess()
                 }
-
-                if let errorMessage = viewModel.state.errorMessage {
-                    Section("Error") {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
+                if viewModel.state.canOpenSettings {
+                    Button("Open Settings") {
+                        viewModel.didTapOpenSettings()
                     }
                 }
             }
-            .navigationTitle("Notifications")
-            .task { await viewModel.observeStatus() }
-            .onDisappear { viewModel.onDisappear() }
+
+            if let errorMessage = viewModel.state.errorMessage {
+                Section("Error") {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                }
+            }
         }
+        .navigationTitle("Notifications")
+        .task { await viewModel.observeStatus() }
+        .onDisappear { viewModel.onDisappear() }
     }
 }

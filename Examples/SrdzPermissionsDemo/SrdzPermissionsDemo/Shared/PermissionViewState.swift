@@ -1,5 +1,5 @@
 //
-//  CaptureViewState.swift
+//  PermissionViewState.swift
 //  SrdzPermissionsDemo
 //
 //  Created by Sergio Rodriguez on 11/11/26.
@@ -7,7 +7,7 @@
 
 import SrdzPermissions
 
-struct CapturePermissionViewState: Equatable {
+struct PermissionViewState: Equatable {
     let title: String
     var status = String(describing: PermissionStatus.notDetermined)
     var canOpenSettings = false

@@ -12,7 +12,7 @@ import SrdzPermissionsTesting
 
 @Suite struct MicrophonePermissionTests {
     @Test func requestAuthorizationReturnsTheScriptedResult() async throws {
-        let provider = FakeCapturePermissionProvider(authorizationResult: .authorized)
+        let provider = FakePermissionProvider(authorizationResult: .authorized)
         let permission = MicrophonePermission(provider: provider)
 
         let status = try await permission.requestAuthorization()
@@ -22,20 +22,20 @@ import SrdzPermissionsTesting
     }
 
     @Test func statusReflectsTheProvider() async {
-        let permission = MicrophonePermission(provider: FakeCapturePermissionProvider(status: .restricted))
+        let permission = MicrophonePermission(provider: FakePermissionProvider(status: .restricted))
 
         #expect(await permission.status == .restricted)
     }
 
     @Test func deniedStaysDeniedAfterARequest() async throws {
-        let provider = FakeCapturePermissionProvider(status: .denied, authorizationResult: .authorized)
+        let provider = FakePermissionProvider(status: .denied, authorizationResult: .authorized)
         let permission = MicrophonePermission(provider: provider)
 
         #expect(try await permission.requestAuthorization() == .denied)
     }
 
     @Test func requestPropagatesTheScriptedError() async {
-        let provider = FakeCapturePermissionProvider(authorizationError: .missingUsageDescription(key: "NSKey"))
+        let provider = FakePermissionProvider(authorizationError: .missingUsageDescription(key: "NSKey"))
         let permission = MicrophonePermission(provider: provider)
 
         await #expect(throws: PermissionError.missingUsageDescription(key: "NSKey")) {
@@ -44,7 +44,7 @@ import SrdzPermissionsTesting
     }
 
     @Test func statusUpdatesEmitTheInitialStatusAndChanges() async {
-        let provider = FakeCapturePermissionProvider(status: .notDetermined, statusChanges: [.authorized, .denied])
+        let provider = FakePermissionProvider(status: .notDetermined, statusChanges: [.authorized, .denied])
         let permission = MicrophonePermission(provider: provider)
 
         var seen: [PermissionStatus] = []
