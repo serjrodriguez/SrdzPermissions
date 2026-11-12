@@ -28,6 +28,8 @@ The `Permissions` entry point (`Permissions.location`, `Permissions.camera`, ...
 
 `Testing/SrdzPermissionsTesting.xcframework` has the fakes for your tests. Add it to test targets only, together with every module it fakes: `SrdzPermissionsCore` and the seven permission modules.
 
+You can skip it by writing your own fake: every facade takes a protocol, and a fake needs only `SrdzPermissionsCore` and the module it fakes. See "Writing your own fake" in the README: https://github.com/serjrodriguez/SrdzPermissions#writing-your-own-fake
+
 ## Info.plist
 
 Add the usage description keys for the permissions you use:

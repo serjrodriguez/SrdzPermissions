@@ -323,6 +323,69 @@ let viewModel = LocationViewModel(permission: LocationPermission(provider: fake)
 let camera = CameraPermission(provider: FakePermissionProvider(authorizationResult: .authorized))
 ```
 
+### Writing your own fake
+
+You do not need `SrdzPermissionsTesting`. Every facade takes a protocol, so you can conform to it in your own test target with only `SrdzPermissionsCore` and the module you are faking. The provided fakes, in contrast, depend on every module.
+
+| Facade | Protocol to conform to |
+|---|---|
+| `LocationPermission` | `LocationProviding` |
+| `CameraPermission`, `MicrophonePermission`, `TrackingPermission` | `PermissionProviding` |
+| `BluetoothPermission` | `BluetoothProviding` |
+| `NotificationPermission` | `NotificationProviding` |
+| `PhotosPermission` | `PhotosProviding` |
+| `BiometricsPermission` | `BiometricsProviding` |
+
+A location fake that grants whatever is asked and always returns the same place:
+
+```swift
+import SrdzPermissionsLocation
+
+struct StubLocationProvider: LocationProviding {
+    var status: LocationStatus { get async { .notDetermined } }
+
+    func requestAuthorization(_ access: LocationAccess) async throws -> LocationStatus {
+        LocationStatus(permission: .authorized, access: access)
+    }
+
+    func statusUpdates() -> AsyncStream<LocationStatus> {
+        AsyncStream { $0.finish() }
+    }
+
+    func updates(options: LocationUpdateOptions) -> AsyncThrowingStream<Location, Error> {
+        AsyncThrowingStream { $0.finish() }
+    }
+
+    func currentLocation(timeout: TimeInterval) async throws -> Location {
+        Location(latitude: 19.4326, longitude: -99.1332)
+    }
+}
+
+let permission = LocationPermission(provider: StubLocationProvider())
+```
+
+Camera, microphone and tracking share one protocol, so a single fake serves all three:
+
+```swift
+import SrdzPermissionsCamera
+
+struct DeniedProvider: PermissionProviding {
+    var status: PermissionStatus { get async { .denied } }
+
+    func requestAuthorization() async throws -> PermissionStatus {
+        .denied
+    }
+
+    func statusUpdates() -> AsyncStream<PermissionStatus> {
+        AsyncStream { $0.finish() }
+    }
+}
+
+let camera = CameraPermission(provider: DeniedProvider())
+```
+
+Use a struct when the answers are fixed. If the test needs to record calls or change the answer over time, make the fake an `actor`, as the library's own fakes are.
+
 ## Architecture
 
 ```
