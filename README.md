@@ -287,6 +287,10 @@ The package itself builds with any Xcode that supports Swift 6; only the demo pr
 
 `Examples/SrdzPermissionsXCFrameworkDemo` is the same app, MVVM included, but it integrates the library through the XCFrameworks instead of Swift Package Manager. Run `./Scripts/build-xcframework.sh` first: the project references `build/xcframeworks/`, which is not committed, so its frameworks show as missing until you build them.
 
+## Documentation
+
+Every public declaration has DocC documentation. In Xcode, open the package and choose **Product > Build Documentation**, or run `xcodebuild docbuild -scheme SrdzPermissions-Package -destination 'generic/platform=iOS Simulator'`.
+
 ## Testing
 
 `SrdzPermissionsTesting` provides `FakeLocationProvider`, `FakePermissionProvider` (camera, microphone and tracking), `FakeBluetoothProvider`, `FakeNotificationProvider`, `FakePhotosProvider` and `FakeBiometricsProvider`:
@@ -314,7 +318,7 @@ LocationPermission        public facade, delegates only
 
 CameraPermission, MicrophonePermission    public facades
   PermissionProviding                     public protocol (Core), the seam for fakes
-    CapturePermissionService              validates Info.plist, delegates to Core
+    AuthorizationService                    Core actor; also used by TrackingPermission
       CaptureBackend                      internal protocol
         AVCaptureBackend                  AVCaptureDevice adapter (iOS)
 

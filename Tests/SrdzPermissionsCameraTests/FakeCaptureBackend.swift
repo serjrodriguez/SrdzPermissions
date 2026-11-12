@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Testing
 import SrdzPermissionsCore
 @testable import SrdzPermissionsCamera
 
@@ -73,10 +74,16 @@ final class FakeCaptureBackend: CaptureBackend, @unchecked Sendable {
 
 
 func waitUntil(
-    _ condition: @Sendable () -> Bool
+    _ condition: @Sendable () async -> Bool,
+    sourceLocation: SourceLocation = #_sourceLocation
 ) async {
-    for _ in 0..<10_000 {
-        if condition() { return }
-        await Task.yield()
+    for attempt in 0..<5_000 {
+        if await condition() { return }
+        if attempt < 100 {
+            await Task.yield()
+        } else {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
     }
+    Issue.record("The condition was not met within five seconds.", sourceLocation: sourceLocation)
 }

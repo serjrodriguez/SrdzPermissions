@@ -13,9 +13,9 @@ import Testing
 @Suite struct CapturePermissionServiceTests {
     private func makeService(
         backend: FakeCaptureBackend,
-        validator: @escaping CapturePermissionService.UsageValidator = { _ in }
-    ) -> CapturePermissionService {
-        CapturePermissionService(
+        validator: @escaping AuthorizationService<Unscoped>.UsageValidator = { _ in }
+    ) -> AuthorizationService<Unscoped> {
+        AuthorizationService.makeCaptureService(
             backend: backend,
             usageDescriptionKey: "NSCameraUsageDescription",
             validateUsageDescription: validator

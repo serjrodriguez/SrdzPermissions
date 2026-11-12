@@ -65,9 +65,13 @@ func waitUntil(
     _ condition: @Sendable () async -> Bool,
     sourceLocation: SourceLocation = #_sourceLocation
 ) async {
-    for _ in 0..<10_000 {
+    for attempt in 0..<5_000 {
         if await condition() { return }
-        await Task.yield()
+        if attempt < 100 {
+            await Task.yield()
+        } else {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
     }
-    Issue.record("Condition was not met in time", sourceLocation: sourceLocation)
+    Issue.record("The condition was not met within five seconds.", sourceLocation: sourceLocation)
 }

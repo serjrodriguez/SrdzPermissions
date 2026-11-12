@@ -8,7 +8,6 @@
 #if os(iOS)
 import Foundation
 import SrdzPermissionsCore
-import UIKit
 import UserNotifications
 
 struct UserNotificationsBackend: NotificationBackend {
@@ -22,15 +21,7 @@ struct UserNotificationsBackend: NotificationBackend {
     }
 
     func statusChanges() -> AsyncStream<Void> {
-        AsyncStream { continuation in
-            let task = Task {
-                for await _ in NotificationCenter.default.notifications(named: UIApplication.didBecomeActiveNotification) {
-                    continuation.yield()
-                }
-                continuation.finish()
-            }
-            continuation.onTermination = { _ in task.cancel() }
-        }
+        ApplicationActivity.didBecomeActiveSignals()
     }
 }
 

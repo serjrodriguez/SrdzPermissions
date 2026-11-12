@@ -6,9 +6,12 @@
 //
 
 #if os(iOS)
+import SrdzPermissionsCore
+
 extension TrackingPermission {
+    /// The real implementation, backed by AppTrackingTransparency.
     public static let live = TrackingPermission(
-        provider: TrackingPermissionService(backend: AppTrackingBackend())
+        provider: AuthorizationService<Unscoped>.makeTrackingService(backend: AppTrackingBackend())
     )
 }
 #endif

@@ -42,10 +42,10 @@ private final class FakeTrackingBackend: TrackingBackend, @unchecked Sendable {
     func statusChanges() -> AsyncStream<Void> { changes }
 }
 
-@Suite struct TrackingPermissionServiceTests {
+@Suite struct TrackingServiceTests {
     @Test func requestShowsPromptAndReturnsTheAnswer() async throws {
         let backend = FakeTrackingBackend(answer: .authorized)
-        let service = TrackingPermissionService(backend: backend, validateUsageDescription: {})
+        let service = AuthorizationService<Unscoped>.makeTrackingService(backend: backend, validateUsageDescription: {})
 
         #expect(try await service.requestAuthorization() == .authorized)
         #expect(backend.requestCount == 1)
@@ -53,14 +53,14 @@ private final class FakeTrackingBackend: TrackingBackend, @unchecked Sendable {
 
     @Test func deniedIsAResultNotAnError() async throws {
         let backend = FakeTrackingBackend(answer: .denied)
-        let service = TrackingPermissionService(backend: backend, validateUsageDescription: {})
+        let service = AuthorizationService<Unscoped>.makeTrackingService(backend: backend, validateUsageDescription: {})
 
         #expect(try await service.requestAuthorization() == .denied)
     }
 
     @Test func missingUsageDescriptionThrowsBeforePrompting() async {
         let backend = FakeTrackingBackend()
-        let service = TrackingPermissionService(backend: backend) {
+        let service = AuthorizationService<Unscoped>.makeTrackingService(backend: backend) {
             throw PermissionError.missingUsageDescription(key: "NSUserTrackingUsageDescription")
         }
 
@@ -71,14 +71,14 @@ private final class FakeTrackingBackend: TrackingBackend, @unchecked Sendable {
     }
 
     @Test func statusReadsTheBackend() async {
-        let service = TrackingPermissionService(backend: FakeTrackingBackend(status: .restricted), validateUsageDescription: {})
+        let service = AuthorizationService<Unscoped>.makeTrackingService(backend: FakeTrackingBackend(status: .restricted), validateUsageDescription: {})
 
         #expect(await service.status == .restricted)
     }
 
     @Test func statusUpdatesEmitTheInitialStatusThenOnlyChanges() async {
         let backend = FakeTrackingBackend()
-        let service = TrackingPermissionService(backend: backend, validateUsageDescription: {})
+        let service = AuthorizationService<Unscoped>.makeTrackingService(backend: backend, validateUsageDescription: {})
 
         var iterator = service.statusUpdates().makeAsyncIterator()
         #expect(await iterator.next() == .notDetermined)

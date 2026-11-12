@@ -24,23 +24,28 @@ struct LocalAuthenticationBackend: BiometricsBackend {
     }
 
     func evaluate(reason: String) async throws -> BiometricResult {
-        let context = LAContext()
-        do {
-            let success = try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)
-            return success ? .success : .failed
-        } catch let error as LAError {
-            switch error.code {
-            case .userCancel, .systemCancel, .appCancel:
-                return .cancelled
-            case .userFallback:
-                return .fallbackRequested
-            case .authenticationFailed:
-                return .failed
-            case .biometryNotAvailable, .biometryNotEnrolled, .biometryLockout, .passcodeNotSet:
-                throw PermissionError.unavailable(reason: error.localizedDescription)
-            default:
-                throw PermissionError.underlying(description: error.localizedDescription)
+        nonisolated(unsafe) let context = LAContext()
+        return try await withTaskCancellationHandler {
+            do {
+                let success = try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)
+                return success ? .success : .failed
+            } catch let error as LAError {
+                switch error.code {
+                case .userCancel, .systemCancel, .appCancel:
+                    try Task.checkCancellation()
+                    return .cancelled
+                case .userFallback:
+                    return .fallbackRequested
+                case .authenticationFailed:
+                    return .failed
+                case .biometryNotAvailable, .biometryNotEnrolled, .biometryLockout, .passcodeNotSet:
+                    throw PermissionError.unavailable(reason: error.localizedDescription)
+                default:
+                    throw PermissionError.underlying(description: error.localizedDescription)
+                }
             }
+        } onCancel: {
+            context.invalidate()
         }
     }
 }

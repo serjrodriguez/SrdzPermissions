@@ -96,7 +96,7 @@ actor LocationService: LocationProviding {
         return try await withThrowingTaskGroup(of: Location.self) { group in
             group.addTask { try await self.awaitOneShotLocation(using: backend) }
             group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(max(timeout, 0) * 1_000_000_000))
+                try await Task.sleep(nanoseconds: Self.nanoseconds(from: timeout))
                 throw PermissionError.timeout
             }
             defer { group.cancelAll() }
@@ -104,6 +104,14 @@ actor LocationService: LocationProviding {
             return first
         }
     }
+
+    static func nanoseconds(from timeout: TimeInterval) -> UInt64 {
+        guard !timeout.isNaN else { return 0 }
+        let seconds = min(max(timeout, 0), maximumTimeout)
+        return UInt64(seconds * 1_000_000_000)
+    }
+
+    private static let maximumTimeout: TimeInterval = 1_000_000_000
 
     private func readyBackend() async -> any LocationBackend {
         let task: Task<any LocationBackend, Never>

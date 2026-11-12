@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Testing
 import SrdzPermissionsCore
 @testable import SrdzPermissionsNotifications
 
@@ -66,9 +67,17 @@ struct FakeFailure: Error, LocalizedError {
     var errorDescription: String? { "boom" }
 }
 
-func waitUntil(_ condition: @Sendable () async -> Bool) async {
-    for _ in 0..<10_000 {
+func waitUntil(
+    _ condition: @Sendable () async -> Bool,
+    sourceLocation: SourceLocation = #_sourceLocation
+) async {
+    for attempt in 0..<5_000 {
         if await condition() { return }
-        await Task.yield()
+        if attempt < 100 {
+            await Task.yield()
+        } else {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
     }
+    Issue.record("The condition was not met within five seconds.", sourceLocation: sourceLocation)
 }

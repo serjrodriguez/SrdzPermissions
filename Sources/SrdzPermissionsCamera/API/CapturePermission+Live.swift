@@ -9,8 +9,9 @@
 import AVFoundation
 
 extension CameraPermission {
+    /// The real implementation, backed by AVFoundation.
     public static let live = CameraPermission(
-        provider: CapturePermissionService(
+        provider: AuthorizationService<Unscoped>.makeCaptureService(
             backend: AVCaptureBackend(mediaType: .video),
             usageDescriptionKey: "NSCameraUsageDescription"
         )
@@ -18,8 +19,9 @@ extension CameraPermission {
 }
 
 extension MicrophonePermission {
+    /// The real implementation, backed by AVFoundation.
     public static let live = MicrophonePermission(
-        provider: CapturePermissionService(
+        provider: AuthorizationService<Unscoped>.makeCaptureService(
             backend: AVCaptureBackend(mediaType: .audio),
             usageDescriptionKey: "NSMicrophoneUsageDescription"
         )

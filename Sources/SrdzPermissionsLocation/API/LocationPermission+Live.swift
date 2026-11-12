@@ -7,6 +7,7 @@
 
 #if os(iOS)
 extension LocationPermission {
+    /// The real implementation, backed by Core Location.
     public static let live = LocationPermission(
         provider: LocationService(makeBackend: { await CoreLocationBackend() })
     )

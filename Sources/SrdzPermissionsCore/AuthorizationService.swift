@@ -15,21 +15,25 @@ package actor AuthorizationService<Scope: Hashable & Sendable> {
     package typealias StatusReader = @Sendable (Scope) async -> PermissionStatus
     package typealias Requester = @Sendable (Scope) async throws -> Void
     package typealias ChangeSignals = @Sendable () -> AsyncStream<Void>
+    package typealias Validator = @Sendable (Scope) throws -> Void
 
     private let readStatus: StatusReader
     private let performRequest: Requester
     private let changeSignals: ChangeSignals
+    private let validate: Validator
 
     private var inFlight: [Scope: Waiters<PermissionStatus>] = [:]
 
     package init(
         readStatus: @escaping StatusReader,
         performRequest: @escaping Requester,
-        changeSignals: @escaping ChangeSignals
+        changeSignals: @escaping ChangeSignals,
+        validate: @escaping Validator = { _ in }
     ) {
         self.readStatus = readStatus
         self.performRequest = performRequest
         self.changeSignals = changeSignals
+        self.validate = validate
     }
 
     package func status(for scope: Scope) async -> PermissionStatus {
@@ -37,6 +41,7 @@ package actor AuthorizationService<Scope: Hashable & Sendable> {
     }
 
     package func requestAuthorization(for scope: Scope) async throws -> PermissionStatus {
+        try validate(scope)
         let current = await readStatus(scope)
         guard current == .notDetermined else { return current }
 
@@ -94,5 +99,19 @@ package actor AuthorizationService<Scope: Hashable & Sendable> {
 
     private func cancelWaiter(_ id: UUID, scope: Scope) {
         inFlight[scope]?.cancel(id)
+    }
+}
+
+extension AuthorizationService: PermissionProviding where Scope == Unscoped {
+    package var status: PermissionStatus {
+        get async { await status(for: Unscoped()) }
+    }
+
+    package func requestAuthorization() async throws -> PermissionStatus {
+        try await requestAuthorization(for: Unscoped())
+    }
+
+    package nonisolated func statusUpdates() -> AsyncStream<PermissionStatus> {
+        statusUpdates(for: Unscoped())
     }
 }

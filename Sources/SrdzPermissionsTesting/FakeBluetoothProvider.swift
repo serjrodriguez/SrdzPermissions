@@ -8,8 +8,11 @@
 import SrdzPermissionsBluetooth
 import SrdzPermissionsCore
 
+/// A scripted ``BluetoothProviding`` for tests. Wrap it in a ``BluetoothPermission`` to inject it.
 public actor FakeBluetoothProvider: BluetoothProviding {
+    /// The current scripted status.
     public private(set) var status: BluetoothStatus
+    /// How many times authorization was requested.
     public private(set) var requestCount = 0
 
     private let authorizationResult: BluetoothStatus?
@@ -17,6 +20,13 @@ public actor FakeBluetoothProvider: BluetoothProviding {
     private nonisolated let initialStatus: BluetoothStatus
     private nonisolated let scriptedStatusChanges: [BluetoothStatus]
 
+    /// Creates a fake.
+    ///
+    /// - Parameters:
+    ///   - status: The initial status.
+    ///   - authorizationResult: The status adopted when a request is made while undetermined.
+    ///   - statusChanges: Statuses emitted by ``statusUpdates()`` after the initial one.
+    ///   - authorizationError: An error thrown by ``requestAuthorization()``.
     public init(
         status: BluetoothStatus = .notDetermined,
         authorizationResult: BluetoothStatus? = nil,
@@ -30,6 +40,7 @@ public actor FakeBluetoothProvider: BluetoothProviding {
         self.authorizationError = authorizationError
     }
 
+    /// Counts the request and, if the permission is undetermined, adopts the scripted result.
     public func requestAuthorization() async throws -> BluetoothStatus {
         requestCount += 1
         if let authorizationError { throw authorizationError }
@@ -39,6 +50,7 @@ public actor FakeBluetoothProvider: BluetoothProviding {
         return status
     }
 
+    /// Emits the initial status and then the scripted changes, and finishes.
     public nonisolated func statusUpdates() -> AsyncStream<BluetoothStatus> {
         let statuses = [initialStatus] + scriptedStatusChanges
         return AsyncStream { continuation in

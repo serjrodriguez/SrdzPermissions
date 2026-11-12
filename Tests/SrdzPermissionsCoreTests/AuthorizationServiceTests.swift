@@ -86,14 +86,51 @@ private struct Boom: Error, LocalizedError {
     var errorDescription: String? { "boom" }
 }
 
-private func waitUntil(_ condition: @Sendable () -> Bool) async {
-    for _ in 0..<10_000 {
-        if condition() { return }
-        await Task.yield()
+private func waitUntil(
+    _ condition: @Sendable () async -> Bool,
+    sourceLocation: SourceLocation = #_sourceLocation
+) async {
+    for attempt in 0..<5_000 {
+        if await condition() { return }
+        if attempt < 100 {
+            await Task.yield()
+        } else {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
     }
+    Issue.record("The condition was not met within five seconds.", sourceLocation: sourceLocation)
 }
 
 @Suite struct AuthorizationServiceTests {
+    @Test func theValidatorRunsBeforeAnyRequest() async {
+        let harness = Harness(answers: ["a": .authorized])
+        let service = AuthorizationService<String>(
+            readStatus: { harness.readStatus($0) },
+            performRequest: { try await harness.performRequest($0) },
+            changeSignals: { harness.changes },
+            validate: { scope in throw PermissionError.missingUsageDescription(key: scope) }
+        )
+
+        await #expect(throws: PermissionError.missingUsageDescription(key: "a")) {
+            try await service.requestAuthorization(for: "a")
+        }
+        #expect(harness.requests.isEmpty)
+    }
+
+    @Test func anUnscopedServiceIsAPermissionProvider() async throws {
+        let service = AuthorizationService<Unscoped>(
+            readStatus: { _ in .authorized },
+            performRequest: { _ in },
+            changeSignals: { AsyncStream { $0.finish() } }
+        )
+        let provider: any PermissionProviding = service
+
+        #expect(await provider.status == .authorized)
+        #expect(try await provider.requestAuthorization() == .authorized)
+        var iterator = provider.statusUpdates().makeAsyncIterator()
+        #expect(await iterator.next() == .authorized)
+    }
+
     @Test func returnsTheCurrentStatusWithoutRequestingWhenDetermined() async throws {
         let harness = Harness(statuses: ["a": .denied])
         let service = harness.makeService()

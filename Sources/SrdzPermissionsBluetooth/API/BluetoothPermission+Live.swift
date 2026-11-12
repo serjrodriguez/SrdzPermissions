@@ -7,6 +7,7 @@
 
 #if os(iOS)
 extension BluetoothPermission {
+    /// The real implementation, backed by Core Bluetooth.
     public static let live = BluetoothPermission(
         provider: BluetoothService(makeBackend: { await CoreBluetoothBackend() })
     )

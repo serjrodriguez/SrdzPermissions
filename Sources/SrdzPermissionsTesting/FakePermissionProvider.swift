@@ -7,8 +7,11 @@
 
 import SrdzPermissionsCore
 
+/// A scripted ``PermissionProviding`` for tests. It serves ``CameraPermission``, ``MicrophonePermission`` and ``TrackingPermission``.
 public actor FakePermissionProvider: PermissionProviding {
+    /// The current scripted status.
     public private(set) var status: PermissionStatus
+    /// How many times authorization was requested.
     public private(set) var requestCount = 0
 
     private let authorizationResult: PermissionStatus?
@@ -16,6 +19,13 @@ public actor FakePermissionProvider: PermissionProviding {
     private nonisolated let scriptedStatusChanges: [PermissionStatus]
     private let authorizationError: PermissionError?
 
+    /// Creates a fake.
+    ///
+    /// - Parameters:
+    ///   - status: The initial status.
+    ///   - authorizationResult: The status adopted when a request is made while undetermined.
+    ///   - statusChanges: Statuses emitted by ``statusUpdates()`` after the initial one.
+    ///   - authorizationError: An error thrown by ``requestAuthorization()``.
     public init(
         status: PermissionStatus = .notDetermined,
         authorizationResult: PermissionStatus? = nil,
@@ -29,6 +39,7 @@ public actor FakePermissionProvider: PermissionProviding {
         self.authorizationError = authorizationError
     }
 
+    /// Counts the request and, if the status is undetermined, adopts the scripted result.
     public func requestAuthorization() async throws -> PermissionStatus {
         requestCount += 1
         if let authorizationError { throw authorizationError }
@@ -38,6 +49,7 @@ public actor FakePermissionProvider: PermissionProviding {
         return status
     }
 
+    /// Emits the initial status and then the scripted changes, and finishes.
     public nonisolated func statusUpdates() -> AsyncStream<PermissionStatus> {
         let statuses = [initialStatus] + scriptedStatusChanges
         return AsyncStream { continuation in

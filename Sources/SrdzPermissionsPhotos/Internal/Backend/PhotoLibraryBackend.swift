@@ -22,15 +22,7 @@ struct PhotoLibraryBackend: PhotosBackend {
     }
 
     func statusChanges() -> AsyncStream<Void> {
-        AsyncStream { continuation in
-            let task = Task {
-                for await _ in NotificationCenter.default.notifications(named: UIApplication.didBecomeActiveNotification) {
-                    continuation.yield()
-                }
-                continuation.finish()
-            }
-            continuation.onTermination = { _ in task.cancel() }
-        }
+        ApplicationActivity.didBecomeActiveSignals()
     }
 
     func presentLimitedPicker() async throws {
