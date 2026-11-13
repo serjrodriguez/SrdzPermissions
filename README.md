@@ -26,7 +26,7 @@ In Xcode, choose **File > Add Package Dependencies** and enter the repository UR
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/serjrodriguez/SrdzPermissions.git", branch: "main")
+    .package(url: "https://github.com/serjrodriguez/SrdzPermissions.git", from: "0.1.0")
 ]
 ```
 
@@ -48,7 +48,7 @@ Then add the products you need to your target:
 | `SrdzPermissionsBiometrics` | Face ID and Touch ID only |
 | `SrdzPermissionsTesting` | Fakes for your tests. Add it to test targets only |
 
-Releases are tagged `vX.Y.Z`. Once the first one is published, depend on it with `from: "X.Y.Z"` instead of `branch: "main"`.
+Releases are tagged `vX.Y.Z` and listed on the [releases page](https://github.com/serjrodriguez/SrdzPermissions/releases). `from: "0.1.0"` accepts every compatible version after it.
 
 ### Local package
 
@@ -95,7 +95,7 @@ Download `SrdzPermissions-all.zip` from the release. It holds every XCFramework 
 
 It builds the XCFrameworks and writes to `build/release/` the per-module zips, `checksums.txt`, `SrdzPermissions-all.zip`, a binary `Package.swift` and a `local-package/` to check that manifest.
 
-No release has been published yet.
+Releases are published automatically when a release pull request is merged into `main`; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Usage
 
