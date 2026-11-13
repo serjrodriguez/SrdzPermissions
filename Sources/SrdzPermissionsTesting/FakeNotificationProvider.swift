@@ -8,7 +8,7 @@
 import SrdzPermissionsCore
 import SrdzPermissionsNotifications
 
-/// A scripted ``NotificationProviding`` for tests. Wrap it in a ``NotificationPermission`` to inject it.
+/// A scripted `NotificationProviding` for tests. Wrap it in a `NotificationPermission` to inject it.
 public actor FakeNotificationProvider: NotificationProviding {
     /// The current scripted status.
     public private(set) var status: PermissionStatus

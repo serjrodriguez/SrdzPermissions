@@ -8,7 +8,7 @@
 import SrdzPermissionsBluetooth
 import SrdzPermissionsCore
 
-/// A scripted ``BluetoothProviding`` for tests. Wrap it in a ``BluetoothPermission`` to inject it.
+/// A scripted `BluetoothProviding` for tests. Wrap it in a `BluetoothPermission` to inject it.
 public actor FakeBluetoothProvider: BluetoothProviding {
     /// The current scripted status.
     public private(set) var status: BluetoothStatus
