@@ -7,7 +7,7 @@
 
 import SrdzPermissionsCore
 
-/// A scripted ``PermissionProviding`` for tests. It serves ``CameraPermission``, ``MicrophonePermission`` and ``TrackingPermission``.
+/// A scripted `PermissionProviding` for tests. It serves `CameraPermission`, `MicrophonePermission` and `TrackingPermission`.
 public actor FakePermissionProvider: PermissionProviding {
     /// The current scripted status.
     public private(set) var status: PermissionStatus

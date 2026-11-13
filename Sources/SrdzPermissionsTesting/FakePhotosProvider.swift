@@ -8,7 +8,7 @@
 import SrdzPermissionsCore
 import SrdzPermissionsPhotos
 
-/// A scripted ``PhotosProviding`` for tests. Wrap it in a ``PhotosPermission`` to inject it.
+/// A scripted `PhotosProviding` for tests. Wrap it in a `PhotosPermission` to inject it.
 public actor FakePhotosProvider: PhotosProviding {
     /// The access levels requested so far, in order.
     public private(set) var requestedAccess: [PhotosAccess] = []
@@ -62,7 +62,7 @@ public actor FakePhotosProvider: PhotosProviding {
         }
     }
 
-    /// Counts the presentation, or throws ``PermissionError/unavailable(reason:)`` when read-write access is not limited.
+    /// Counts the presentation, or throws `PermissionError.unavailable(reason:)` when read-write access is not limited.
     public func presentLimitedLibraryPicker() async throws {
         guard statuses[.readWrite] == .limited else {
             throw PermissionError.unavailable(reason: "Access is not limited.")

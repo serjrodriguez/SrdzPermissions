@@ -8,7 +8,7 @@
 import SrdzPermissionsBiometrics
 import SrdzPermissionsCore
 
-/// A scripted ``BiometricsProviding`` for tests. Wrap it in a ``BiometricsPermission`` to inject it.
+/// A scripted `BiometricsProviding` for tests. Wrap it in a `BiometricsPermission` to inject it.
 public actor FakeBiometricsProvider: BiometricsProviding {
     /// The scripted biometric status.
     public private(set) var status: BiometricStatus
@@ -30,7 +30,7 @@ public actor FakeBiometricsProvider: BiometricsProviding {
         self.result = result
     }
 
-    /// Records the reason and returns the scripted result, or throws ``PermissionError/unavailable(reason:)`` when biometrics are not available.
+    /// Records the reason and returns the scripted result, or throws `PermissionError.unavailable(reason:)` when biometrics are not available.
     public func authenticate(reason: String) async throws -> BiometricResult {
         authenticationReasons.append(reason)
         guard status.isAvailable else {
