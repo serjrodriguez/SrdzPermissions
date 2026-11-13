@@ -8,7 +8,7 @@
 import Foundation
 import SrdzPermissionsLocation
 
-/// A scripted ``LocationProviding`` for tests. Wrap it in a ``LocationPermission`` to inject it.
+/// A scripted `LocationProviding` for tests. Wrap it in a `LocationPermission` to inject it.
 public actor FakeLocationProvider: LocationProviding {
     /// The current scripted status.
     public private(set) var status: LocationStatus
@@ -76,7 +76,7 @@ public actor FakeLocationProvider: LocationProviding {
         }
     }
 
-    /// Returns the scripted result, or throws ``PermissionError/notAuthorized(_:)`` when access is not granted.
+    /// Returns the scripted result, or throws `PermissionError.notAuthorized(_:)` when access is not granted.
     public func currentLocation(timeout: TimeInterval) async throws -> Location {
         guard status.permission.isGranted else {
             throw PermissionError.notAuthorized(status.permission)

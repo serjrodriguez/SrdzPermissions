@@ -48,7 +48,7 @@ Then add the products you need to your target:
 | `SrdzPermissionsBiometrics` | Face ID and Touch ID only |
 | `SrdzPermissionsTesting` | Fakes for your tests. Add it to test targets only |
 
-A tagged release will replace `branch: "main"` with a version requirement.
+Releases are tagged `vX.Y.Z`. Once the first one is published, depend on it with `from: "X.Y.Z"` instead of `branch: "main"`.
 
 ### Local package
 
@@ -83,21 +83,9 @@ Add the frameworks to your app's **Frameworks, Libraries, and Embedded Content**
 
 Every permission is its own XCFramework on purpose: your app only links the Apple frameworks of the modules you add, so it never references Bluetooth, tracking or photos APIs it does not use.
 
-#### As a binary Swift package
-
-A release tag ships a `Package.swift` made of binary targets, so nothing is compiled from source. Add the package and pick one product; `SrdzPermissionsCore` and any other dependency come with it:
-
-```swift
-.package(url: "https://github.com/serjrodriguez/SrdzPermissions.git", from: "<version>")
-```
-
-```swift
-.product(name: "SrdzPermissionsLocation", package: "SrdzPermissions")
-```
-
 #### Manual installation
 
-Download `SrdzPermissions-all.zip` from the release. It holds every XCFramework and an `INSTALL.md` with the table above, so you only drag the ones you need. The individual `.xcframework.zip` files are attached too.
+Download `SrdzPermissions-all.zip` from the release. It holds every XCFramework and an `INSTALL.md` with the table above, so you only drag the ones you need. The individual `.xcframework.zip` files and `checksums.txt` are attached too. Installing the XCFrameworks as a binary Swift package is not offered yet: the tag always builds from source.
 
 #### Building a release
 
@@ -105,7 +93,7 @@ Download `SrdzPermissions-all.zip` from the release. It holds every XCFramework 
 ./Scripts/package-release.sh <version>
 ```
 
-It builds the XCFrameworks and writes to `build/release/` the per-module zips, `checksums.txt`, `SrdzPermissions-all.zip`, a binary `Package.swift` for the tag and a `local-package/` to check that manifest before publishing.
+It builds the XCFrameworks and writes to `build/release/` the per-module zips, `checksums.txt`, `SrdzPermissions-all.zip`, a binary `Package.swift` and a `local-package/` to check that manifest.
 
 No release has been published yet.
 
@@ -425,7 +413,7 @@ NotificationPermission    public facade
 
 ## Contributing
 
-Issues and pull requests are welcome. `AGENTS.md` describes the project conventions, and it works for humans too.
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch flow, the checks every pull request must pass and how releases are cut. `AGENTS.md` describes the code conventions, and it works for humans too.
 
 ```bash
 swift test

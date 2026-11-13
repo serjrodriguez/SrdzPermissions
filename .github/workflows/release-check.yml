@@ -1,0 +1,63 @@
+name: Release check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Only develop can be released
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "develop" ]; then
+            echo "Pull requests into main must come from develop, not $HEAD_REF"
+            exit 1
+          fi
+
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check that VERSION is new
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "VERSION must look like 1.2.3, found: $version"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "Tag v$version already exists: bump VERSION before releasing"
+            exit 1
+          fi
+
+  package-release:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the XCFrameworks and the release package
+        run: Scripts/package-release.sh 0.0.0-check
+      - name: Verify the release artifacts
+        run: |
+          cd build/release
+          ls -l
+          test "$(grep -c xcframework.zip checksums.txt)" -eq 10
+          test -f Package.swift
+          if unzip -l SrdzPermissions-all.zip | grep -q __MACOSX; then
+            echo "SrdzPermissions-all.zip contains __MACOSX"
+            exit 1
+          fi

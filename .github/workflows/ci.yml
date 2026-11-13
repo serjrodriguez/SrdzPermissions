@@ -36,3 +36,30 @@ jobs:
           xcodebuild build \
             -scheme SrdzPermissions-Package \
             -destination 'generic/platform=iOS Simulator'
+
+  tsan:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run tests with Thread Sanitizer
+        run: swift test --sanitize=thread
+
+  docs:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the documentation
+        run: |
+          set -o pipefail
+          xcodebuild docbuild \
+            -scheme SrdzPermissions-Package \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/docc" 2>&1 | tee "$RUNNER_TEMP/docc.log"
+      - name: Fail on documentation warnings
+        run: |
+          if grep -E "warning:" "$RUNNER_TEMP/docc.log"; then
+            echo "DocC reported warnings"
+            exit 1
+          fi
