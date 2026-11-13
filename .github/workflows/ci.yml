@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  environment:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show tool versions
+        run: |
+          sw_vers
+          swift --version
+          xcodebuild -version
+          ls /Applications | grep -i xcode
